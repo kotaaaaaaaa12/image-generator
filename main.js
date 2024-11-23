@@ -76,11 +76,19 @@ function generateMosaic() {
     outputCanvas.width = 104;
     outputCanvas.height = 104;
 
+    // 空の画像を生成（透過部分を保つため）
+    const emptyCanvas = document.createElement("canvas");
+    const emptyCtx = emptyCanvas.getContext("2d");
+    emptyCanvas.width = 104;
+    emptyCanvas.height = 104;
+
+    // 各ピクセルごとの処理
     for (let y = 0; y < 16; y++) {
       for (let x = 0; x < 16; x++) {
         const i = (y * 16 + x) * 4;
-        const alpha = imgData.data[i + 3];
+        const alpha = imgData.data[i + 3];  // アルファ（透過部分）
 
+        // 透過部分はそのままにして、それ以外を処理
         if (alpha > 0) {
           const r = imgData.data[i];
           const g = imgData.data[i + 1];
@@ -97,15 +105,15 @@ function generateMosaic() {
           }
           tempCtx.putImageData(aData, 0, 0);
 
-          // 変換後の画像を透過部分を保持しつつ出力
-          outputCtx.clearRect(0, 0, 104, 104);
-          outputCtx.putImageData(aData, 0, 0);
+          // 透過部分を保持しつつ、画像Aを描画
+          emptyCtx.clearRect(0, 0, 104, 104); // 空白で初期化
+          emptyCtx.putImageData(aData, 0, 0);
         }
       }
     }
 
     // 変換後の画像をBase64形式で保存
-    const dataURL = outputCanvas.toDataURL("image/png");
+    const dataURL = emptyCanvas.toDataURL("image/png");
 
     generatedImages.push({ name: `${imageName}_generated.png`, dataURL });
 
