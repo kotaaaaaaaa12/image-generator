@@ -43,7 +43,7 @@ function handleImageUpload(event) {
   }
 }
 
-function generateMosaic() {
+async function generateMosaic() {
   if (!imageA || imageBList.length === 0) {
     alert("画像Aと画像Bを選択してください。");
     return;
@@ -53,7 +53,9 @@ function generateMosaic() {
   generatedImages = [];
   let completed = 0;
 
-  imageBList.forEach((imageBObj, index) => {
+  // 画像Bごとに処理を順次行う
+  for (let index = 0; index < imageBList.length; index++) {
+    const imageBObj = imageBList[index];
     const imageB = imageBObj.img;
     const imageName = imageBObj.name;
 
@@ -70,7 +72,6 @@ function generateMosaic() {
     tempCanvas.width = 104;
     tempCanvas.height = 104;
 
-    // 変換後の画像を保存するための処理
     const outputCanvas = document.createElement("canvas");
     const outputCtx = outputCanvas.getContext("2d");
     outputCanvas.width = 104;
@@ -97,21 +98,18 @@ function generateMosaic() {
           }
           tempCtx.putImageData(aData, 0, 0);
 
-          // 変換後の画像を透過部分を保持しつつ出力
           outputCtx.clearRect(0, 0, 104, 104);
           outputCtx.putImageData(aData, 0, 0);
         }
       }
     }
 
-    // 変換後の画像をBase64形式で保存
     const dataURL = outputCanvas.toDataURL("image/png");
-
     generatedImages.push({ name: `${imageName}_generated.png`, dataURL });
 
     completed++;
     progressBar.value = (completed / imageBList.length) * 100;
-  });
+  }
 
   if (progressBar.value === 100) {
     alert("画像の生成が完了しました！");
