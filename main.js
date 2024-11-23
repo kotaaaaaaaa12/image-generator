@@ -1,6 +1,8 @@
 const imageAInput = document.getElementById("imageA");
 const imageBInput = document.getElementById("imageB");
 const progressBar = document.getElementById("progressBar");
+const canvas = document.getElementById("outputCanvas");
+const ctx = canvas.getContext("2d");
 const generateButton = document.getElementById("generateButton");
 const downloadButton = document.getElementById("downloadButton");
 
@@ -49,8 +51,19 @@ function generateMosaic() {
     return;
   }
 
+  const mosaicSize = 1440;
+  canvas.width = mosaicSize;
+  canvas.height = mosaicSize;
+  const pixelSize = mosaicSize / 16;
+
   progressBar.value = 0;
   generatedImages = [];
+
+  const tempCanvas = document.createElement("canvas");
+  const tempCtx = tempCanvas.getContext("2d");
+  tempCanvas.width = 104;
+  tempCanvas.height = 104;
+
   let completed = 0;
 
   imageBList.forEach((imageBObj, index) => {
@@ -69,12 +82,6 @@ function generateMosaic() {
     const tempCtx = tempCanvas.getContext("2d");
     tempCanvas.width = 104;
     tempCanvas.height = 104;
-
-    // 変換後の画像を保存するための処理
-    const outputCanvas = document.createElement("canvas");
-    const outputCtx = outputCanvas.getContext("2d");
-    outputCanvas.width = 104;
-    outputCanvas.height = 104;
 
     for (let y = 0; y < 16; y++) {
       for (let x = 0; x < 16; x++) {
@@ -97,16 +104,14 @@ function generateMosaic() {
           }
           tempCtx.putImageData(aData, 0, 0);
 
-          // 変換後の画像を透過部分を保持しつつ出力
-          outputCtx.clearRect(0, 0, 104, 104);
-          outputCtx.putImageData(aData, 0, 0);
+          const posX = x * pixelSize;
+          const posY = y * pixelSize;
+          ctx.drawImage(tempCanvas, posX, posY, pixelSize, pixelSize);
         }
       }
     }
 
-    // 変換後の画像をBase64形式で保存
-    const dataURL = outputCanvas.toDataURL("image/png");
-
+    const dataURL = canvas.toDataURL("image/png");
     generatedImages.push({ name: `${imageName}_generated.png`, dataURL });
 
     completed++;
