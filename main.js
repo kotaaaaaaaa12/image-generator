@@ -104,9 +104,14 @@ function generateMosaic() {
           }
           tempCtx.putImageData(aData, 0, 0);
 
+          // 透過部分の処理をここで行います。
+          // 透明部分は描画しないようにします
           const posX = x * pixelSize;
           const posY = y * pixelSize;
-          ctx.drawImage(tempCanvas, posX, posY, pixelSize, pixelSize);
+          
+          if (alpha > 0) { 
+            ctx.drawImage(tempCanvas, posX, posY, pixelSize, pixelSize);
+          }
         }
       }
     }
