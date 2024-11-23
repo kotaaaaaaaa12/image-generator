@@ -52,20 +52,25 @@ function generateMosaic() {
   canvas.height = mosaicSize;
   const pixelSize = mosaicSize / 16;
 
-  let completed = 0;
   progressBar.value = 0;
+  const tempCanvas = document.createElement("canvas");
+  const tempCtx = tempCanvas.getContext("2d");
+  tempCanvas.width = 104;
+  tempCanvas.height = 104;
+
+  let completed = 0;
 
   imageBList.forEach((imageB, index) => {
     const offsetX = (index % 16) * pixelSize;
     const offsetY = Math.floor(index / 16) * pixelSize;
 
-    const tempCanvas = document.createElement("canvas");
-    const tempCtx = tempCanvas.getContext("2d");
-    tempCanvas.width = 16;
-    tempCanvas.height = 16;
+    const bCanvas = document.createElement("canvas");
+    const bCtx = bCanvas.getContext("2d");
+    bCanvas.width = 16;
+    bCanvas.height = 16;
 
-    tempCtx.drawImage(imageB, 0, 0, 16, 16);
-    const imgData = tempCtx.getImageData(0, 0, 16, 16);
+    bCtx.drawImage(imageB, 0, 0, 16, 16);
+    const imgData = bCtx.getImageData(0, 0, 16, 16);
 
     for (let y = 0; y < 16; y++) {
       for (let x = 0; x < 16; x++) {
@@ -77,11 +82,18 @@ function generateMosaic() {
           const g = imgData.data[i + 1];
           const b = imgData.data[i + 2];
 
-          ctx.drawImage(imageA, offsetX + x * pixelSize / 16, offsetY + y * pixelSize / 16, pixelSize / 16, pixelSize / 16);
-          ctx.globalCompositeOperation = "source-in";
-          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha / 255})`;
-          ctx.fillRect(offsetX + x * pixelSize / 16, offsetY + y * pixelSize / 16, pixelSize / 16, pixelSize / 16);
-          ctx.globalCompositeOperation = "source-over";
+          tempCtx.clearRect(0, 0, 104, 104);
+          tempCtx.drawImage(imageA, 0, 0);
+
+          const aData = tempCtx.getImageData(0, 0, 104, 104);
+          for (let j = 0; j < aData.data.length; j += 4) {
+            aData.data[j] = (aData.data[j] * r) / 255;
+            aData.data[j + 1] = (aData.data[j + 1] * g) / 255;
+            aData.data[j + 2] = (aData.data[j + 2] * b) / 255;
+          }
+          tempCtx.putImageData(aData, 0, 0);
+
+          ctx.drawImage(tempCanvas, offsetX + x * pixelSize / 16, offsetY + y * pixelSize / 16, pixelSize / 16, pixelSize / 16);
         }
       }
     }
