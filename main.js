@@ -3,11 +3,13 @@ const imageBInput = document.getElementById("imageB");
 const progressBar = document.getElementById("progressBar");
 const canvas = document.getElementById("outputCanvas");
 const ctx = canvas.getContext("2d");
+const generateButton = document.getElementById("generateButton");
+
+let imageA, imageBList = [];
 
 imageAInput.addEventListener("change", handleImageUpload);
 imageBInput.addEventListener("change", handleImageUpload);
-
-let imageA, imageBList = [];
+generateButton.addEventListener("click", generateMosaic);
 
 function handleImageUpload(event) {
   const files = event.target.files;
@@ -25,15 +27,12 @@ function handleImageUpload(event) {
     }
   } else if (event.target.id === "imageB") {
     imageBList = [];
-    Array.from(files).forEach((file, index) => {
+    Array.from(files).forEach((file) => {
       const fileReader = new FileReader();
       fileReader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
           imageBList.push(img);
-          if (imageBList.length === files.length) {
-            generateMosaic();
-          }
         };
         img.src = e.target.result;
       };
@@ -43,7 +42,10 @@ function handleImageUpload(event) {
 }
 
 function generateMosaic() {
-  if (!imageA || imageBList.length === 0) return;
+  if (!imageA || imageBList.length === 0) {
+    alert("画像Aと画像Bを選択してください。");
+    return;
+  }
 
   const mosaicSize = 1440;
   canvas.width = mosaicSize;
@@ -51,41 +53,44 @@ function generateMosaic() {
   const pixelSize = mosaicSize / 16;
 
   let completed = 0;
+  progressBar.value = 0;
+
   imageBList.forEach((imageB, index) => {
     const offsetX = (index % 16) * pixelSize;
     const offsetY = Math.floor(index / 16) * pixelSize;
 
-    ctx.drawImage(imageA, offsetX, offsetY, pixelSize, pixelSize);
-    applyColorFilter(imageB, offsetX, offsetY, pixelSize);
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCanvas.width = 16;
+    tempCanvas.height = 16;
+
+    tempCtx.drawImage(imageB, 0, 0, 16, 16);
+    const imgData = tempCtx.getImageData(0, 0, 16, 16);
+
+    for (let y = 0; y < 16; y++) {
+      for (let x = 0; x < 16; x++) {
+        const i = (y * 16 + x) * 4;
+        const alpha = imgData.data[i + 3];
+
+        if (alpha > 0) {
+          const r = imgData.data[i];
+          const g = imgData.data[i + 1];
+          const b = imgData.data[i + 2];
+
+          ctx.drawImage(imageA, offsetX + x * pixelSize / 16, offsetY + y * pixelSize / 16, pixelSize / 16, pixelSize / 16);
+          ctx.globalCompositeOperation = "source-in";
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha / 255})`;
+          ctx.fillRect(offsetX + x * pixelSize / 16, offsetY + y * pixelSize / 16, pixelSize / 16, pixelSize / 16);
+          ctx.globalCompositeOperation = "source-over";
+        }
+      }
+    }
 
     completed++;
     progressBar.value = (completed / imageBList.length) * 100;
   });
-}
 
-function applyColorFilter(imageB, x, y, size) {
-  const tempCanvas = document.createElement("canvas");
-  const tempCtx = tempCanvas.getContext("2d");
-  tempCanvas.width = 16;
-  tempCanvas.height = 16;
-  tempCtx.drawImage(imageB, 0, 0, 16, 16);
-
-  const imgData = tempCtx.getImageData(0, 0, 16, 16).data;
-  const avgColor = { r: 0, g: 0, b: 0 };
-
-  for (let i = 0; i < imgData.length; i += 4) {
-    avgColor.r += imgData[i];
-    avgColor.g += imgData[i + 1];
-    avgColor.b += imgData[i + 2];
+  if (progressBar.value === 100) {
+    alert("画像の生成が完了しました！");
   }
-
-  const totalPixels = 16 * 16;
-  avgColor.r = Math.round(avgColor.r / totalPixels);
-  avgColor.g = Math.round(avgColor.g / totalPixels);
-  avgColor.b = Math.round(avgColor.b / totalPixels);
-
-  ctx.globalCompositeOperation = "source-in";
-  ctx.fillStyle = `rgb(${avgColor.r}, ${avgColor.g}, ${avgColor.b})`;
-  ctx.fillRect(x, y, size, size);
-  ctx.globalCompositeOperation = "source-over";
 }
