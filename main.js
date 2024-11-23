@@ -99,7 +99,9 @@ function generateMosaic() {
           }
           tempCtx.putImageData(aData, 0, 0);
 
-          ctx.drawImage(tempCanvas, x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+          const posX = x * pixelSize;
+          const posY = y * pixelSize;
+          ctx.drawImage(tempCanvas, posX, posY, pixelSize, pixelSize);
         }
       }
     }
