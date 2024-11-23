@@ -91,7 +91,6 @@ function generateMosaic() {
 
           const aData = tempCtx.getImageData(0, 0, 104, 104);
           for (let j = 0; j < aData.data.length; j += 4) {
-            // 透過部分を保持しつつ、画像Aの色調を変更
             aData.data[j] = (aData.data[j] * r) / 255;
             aData.data[j + 1] = (aData.data[j + 1] * g) / 255;
             aData.data[j + 2] = (aData.data[j + 2] * b) / 255;
@@ -99,7 +98,7 @@ function generateMosaic() {
           tempCtx.putImageData(aData, 0, 0);
 
           // 変換後の画像を透過部分を保持しつつ出力
-          outputCtx.clearRect(0, 0, 104, 104); // 必要ない部分をクリア
+          outputCtx.clearRect(0, 0, 104, 104);
           outputCtx.putImageData(aData, 0, 0);
         }
       }
