@@ -4,12 +4,15 @@ const progressBar = document.getElementById("progressBar");
 const canvas = document.getElementById("outputCanvas");
 const ctx = canvas.getContext("2d");
 const generateButton = document.getElementById("generateButton");
+const downloadButton = document.getElementById("downloadButton");
 
 let imageA, imageBList = [];
+let generatedImages = [];
 
 imageAInput.addEventListener("change", handleImageUpload);
 imageBInput.addEventListener("change", handleImageUpload);
 generateButton.addEventListener("click", generateMosaic);
+downloadButton.addEventListener("click", downloadAll);
 
 function handleImageUpload(event) {
   const files = event.target.files;
@@ -32,7 +35,7 @@ function handleImageUpload(event) {
       fileReader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          imageBList.push(img);
+          imageBList.push({ img, name: file.name });
         };
         img.src = e.target.result;
       };
@@ -53,6 +56,8 @@ function generateMosaic() {
   const pixelSize = mosaicSize / 16;
 
   progressBar.value = 0;
+  generatedImages = []; // リセット
+
   const tempCanvas = document.createElement("canvas");
   const tempCtx = tempCanvas.getContext("2d");
   tempCanvas.width = 104;
@@ -60,9 +65,9 @@ function generateMosaic() {
 
   let completed = 0;
 
-  imageBList.forEach((imageB, index) => {
-    const offsetX = (index % 16) * pixelSize;
-    const offsetY = Math.floor(index / 16) * pixelSize;
+  imageBList.forEach((imageBObj, index) => {
+    const imageB = imageBObj.img;
+    const imageName = imageBObj.name.replace(/\.[^/.]+$/, ""); // 拡張子を除去
 
     const bCanvas = document.createElement("canvas");
     const bCtx = bCanvas.getContext("2d");
@@ -93,10 +98,13 @@ function generateMosaic() {
           }
           tempCtx.putImageData(aData, 0, 0);
 
-          ctx.drawImage(tempCanvas, offsetX + x * pixelSize / 16, offsetY + y * pixelSize / 16, pixelSize / 16, pixelSize / 16);
+          ctx.drawImage(tempCanvas, x * pixelSize / 16, y * pixelSize / 16, pixelSize / 16, pixelSize / 16);
         }
       }
     }
+
+    // 各画像を保存
+    generatedImages.push({ name: `${imageName}_generated.png`, dataURL: canvas.toDataURL("image/png") });
 
     completed++;
     progressBar.value = (completed / imageBList.length) * 100;
@@ -104,5 +112,23 @@ function generateMosaic() {
 
   if (progressBar.value === 100) {
     alert("画像の生成が完了しました！");
+    downloadButton.disabled = false;
   }
+}
+
+function downloadAll() {
+  const zip = new JSZip();
+  const folder = zip.folder("generated_images");
+
+  generatedImages.forEach((image) => {
+    const data = image.dataURL.split(",")[1]; // Base64部分を取得
+    folder.file(image.name, data, { base64: true });
+  });
+
+  zip.generateAsync({ type: "blob" }).then((content) => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(content);
+    a.download = "generated_images.zip";
+    a.click();
+  });
 }
