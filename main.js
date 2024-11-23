@@ -35,7 +35,8 @@ function handleImageUpload(event) {
       fileReader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          imageBList.push({ img, name: file.name });
+          const name = file.name.replace(/\.[^/.]+$/, "");
+          imageBList.push({ img, name });
         };
         img.src = e.target.result;
       };
@@ -56,7 +57,7 @@ function generateMosaic() {
   const pixelSize = mosaicSize / 16;
 
   progressBar.value = 0;
-  generatedImages = []; // リセット
+  generatedImages = [];
 
   const tempCanvas = document.createElement("canvas");
   const tempCtx = tempCanvas.getContext("2d");
@@ -67,7 +68,7 @@ function generateMosaic() {
 
   imageBList.forEach((imageBObj, index) => {
     const imageB = imageBObj.img;
-    const imageName = imageBObj.name.replace(/\.[^/.]+$/, ""); // 拡張子を除去
+    const imageName = imageBObj.name;
 
     const bCanvas = document.createElement("canvas");
     const bCtx = bCanvas.getContext("2d");
@@ -98,13 +99,13 @@ function generateMosaic() {
           }
           tempCtx.putImageData(aData, 0, 0);
 
-          ctx.drawImage(tempCanvas, x * pixelSize / 16, y * pixelSize / 16, pixelSize / 16, pixelSize / 16);
+          ctx.drawImage(tempCanvas, x * pixelSize, y * pixelSize, pixelSize, pixelSize);
         }
       }
     }
 
-    // 各画像を保存
-    generatedImages.push({ name: `${imageName}_generated.png`, dataURL: canvas.toDataURL("image/png") });
+    const dataURL = canvas.toDataURL("image/png");
+    generatedImages.push({ name: `${imageName}_generated.png`, dataURL });
 
     completed++;
     progressBar.value = (completed / imageBList.length) * 100;
@@ -121,7 +122,7 @@ function downloadAll() {
   const folder = zip.folder("generated_images");
 
   generatedImages.forEach((image) => {
-    const data = image.dataURL.split(",")[1]; // Base64部分を取得
+    const data = image.dataURL.split(",")[1];
     folder.file(image.name, data, { base64: true });
   });
 
