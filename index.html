@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ピクセルごとに画像変換ツール</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>ピクセルごとに画像変換ツール</h1>
+  </header>
+  <main>
+    <p>このツールは、選択した小さな画像（画像B）のピクセルごとに、ベースとなる画像（画像A）の色調を変換し、モザイク状の画像を生成します。</p>
+    <div class="upload-section">
+      <div class="upload-container">
+        <label for="imageA">画像Aを選択 (104x104):</label>
+        <input type="file" id="imageA" accept="image/*">
+      </div>
+      <div class="upload-container">
+        <label for="imageB">画像Bを選択 (16x16):</label>
+        <input type="file" id="imageB" accept="image/*" multiple>
+      </div>
+    </div>
+    <progress id="progressBar" value="0" max="100"></progress>
+    <canvas id="outputCanvas"></canvas>
+  </main>
+  <script src="main.js"></script>
+</body>
+</html>
