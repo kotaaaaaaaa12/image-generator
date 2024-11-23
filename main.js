@@ -78,6 +78,11 @@ function generateMosaic() {
     bCtx.drawImage(imageB, 0, 0, 16, 16);
     const imgData = bCtx.getImageData(0, 0, 16, 16);
 
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCanvas.width = 104;
+    tempCanvas.height = 104;
+
     for (let y = 0; y < 16; y++) {
       for (let x = 0; x < 16; x++) {
         const i = (y * 16 + x) * 4;
